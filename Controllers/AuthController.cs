@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace BASEAPI.Controllers
 {
@@ -14,8 +16,10 @@ namespace BASEAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly ApplicationDbContext _dbContext;
-        public AuthController(ApplicationDbContext dbContext) {
+        private readonly IEmailService _emailservice;
+        public AuthController(ApplicationDbContext dbContext, IEmailService emailservice) {
             _dbContext = dbContext;
+            _emailservice = emailservice;
         }
 
         [HttpPost]
@@ -32,8 +36,21 @@ namespace BASEAPI.Controllers
             };
             _dbContext.Users.Add(NewUser);
             _dbContext.SaveChanges();
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse("burdette88@ethereal.email"));
+            email.To.Add(MailboxAddress.Parse("burdette88@ethereal.email"));
+            email.Subject = "TEST EMAIL SUBJECT";
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Html){Text = "terima kasih sudah membuat akun"};
+            
+            using var smtp =  new SmtpClient();
+            smtp.Connect("smtp.ethereal.email",587,MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Authenticate("burdette88@ethereal.email","xzjYfCTxyrqabguppq");
+            smtp.Send(email);
+            smtp.Disconnect(true);
+            
             return Created("", NewUser);
         }
+
         [HttpPost]
         [Route("login")]
         public IActionResult Login(LoginDto login) {
@@ -65,6 +82,13 @@ namespace BASEAPI.Controllers
                 Expires = DateTime.UtcNow.AddDays(1),
             });
         }
-
+        [HttpPost]
+        [Route("email")]
+        public IActionResult SendEmail(EmailDto request)
+        {
+            _emailservice.SendEmail(request);
+            return Ok();
+        }
     }
+
 }

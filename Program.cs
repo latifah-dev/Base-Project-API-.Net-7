@@ -1,9 +1,11 @@
+global using BASEAPI.Services.EmailService;
 using System.Text;
 using BASEAPI.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors();
@@ -60,7 +62,7 @@ builder.Services.AddSwaggerGen(option => {
         }
     });
 });
-
+builder.Services.AddScoped<IEmailService, EmailService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
