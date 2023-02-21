@@ -37,7 +37,7 @@ builder.Services.AddAuthentication(options =>
 });
 // Add authorize on swagger
 builder.Services.AddSwaggerGen(option => {
-    option.SwaggerDoc("v1", new OpenApiInfo { Title = "API AQIQAH", Version = "v1" });
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Base API User", Version = "v1" });
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,

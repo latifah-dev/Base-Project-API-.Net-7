@@ -46,8 +46,18 @@ namespace BASEAPI.Controllers
             //save to database
             _dbContext.Users.Add(NewUser);
             await _dbContext.SaveChangesAsync();
+            //send email 
+            var verifylink = "http://localhost:5139/api/Auth/verify?token="+randomToken;
+            var email  = new EmailDto() {
+                To = register.Email,
+                Subject = "VERIFICATION EMAIL",
+                Body = "<br/><br/>We are excited to tell you that your account is" +  
+      " successfully created. Please click on the below link to verify your account" +  
+      " <br/><br/><a href='" + verifylink + "'>" + verifylink + "</a> ",
+            };
+            _emailservice.SendEmail(email);
             //response
-            return Created("User successfully created !", NewUser);
+            return Created("Register successly, check your email to verification !", NewUser);
         }
 
         [HttpPost]
@@ -113,7 +123,17 @@ namespace BASEAPI.Controllers
             user.PasswordResetToken = randomToken;
             user.ResetTokenExpires = DateTime.UtcNow.AddDays(1);
             await _dbContext.SaveChangesAsync();
-
+            
+            //send email 
+            var verifylink = "http://localhost:5139/api/Auth/forgot-password?email="+email+"/"+randomToken;
+            var sendEmail  = new EmailDto() {
+                To = email,
+                Subject = "FORGOT PASSWORD",
+                Body = "<br/><br/>Tap the link below to reset your account password." +  
+      "  If you didn't request a new password, you can safely delete this email." +  
+      " <br/><br/><a href='" + verifylink + "'>" + verifylink + "</a> ",
+            };
+            _emailservice.SendEmail(sendEmail);
             return Created("you may reset your token now", randomToken);
         }
         [HttpPost]
