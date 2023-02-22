@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
-using MimeKit;
-using MailKit.Net.Smtp;
 using System.Security.Cryptography;
+using System.Security.Claims;
 
 namespace BASEAPI.Controllers
 {
@@ -79,12 +78,19 @@ namespace BASEAPI.Controllers
             if(user.VerifiedAt == null) {
                 return BadRequest("not verified !");
             }
+            // definisikan klaim
+            var claims = new List<Claim>
+            {
+                new Claim("sub", user.Id.ToString()), // sub (subject) adalah claim yang umum digunakan untuk menyatakan ID pengguna
+                new Claim("email", user.Email), // contoh klaim email
+                // tambahkan klaim lainnya di sini
+            };
             // create jwt
             var secureKey = "this is very secure key";
             var symmetric = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secureKey));
             var credentials = new SigningCredentials(symmetric, SecurityAlgorithms.HmacSha256Signature);
             var header = new JwtHeader(credentials);
-            var payload = new JwtPayload (login.UserNameOrEmail, null, null, null,DateTime.Today.AddDays(1));
+            var payload = new JwtPayload (null, null, claims, null, DateTime.Today.AddDays(1));
             var securityToken = new JwtSecurityToken(header, payload);
             var token = new JwtSecurityTokenHandler().WriteToken(securityToken);
             //response
@@ -95,6 +101,7 @@ namespace BASEAPI.Controllers
                 Expires = DateTime.UtcNow.AddDays(1),
             });
         }
+        
         [HttpPost]
         [Route("verify")]
         public async Task<IActionResult> Verify(String token) {
