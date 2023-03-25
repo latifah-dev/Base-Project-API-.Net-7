@@ -383,3 +383,4 @@
 /home/latifah/BASEAPI/bin/Debug/net7.0/MailKit.dll
 /home/latifah/BASEAPI/bin/Debug/net7.0/MimeKit.dll
 /home/latifah/BASEAPI/bin/Debug/net7.0/BouncyCastle.Crypto.dll
+/home/latifah/BASEAPI/bin/Debug/net7.0/Microsoft.AspNetCore.Authentication.Google.dll

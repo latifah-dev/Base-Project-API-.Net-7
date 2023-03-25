@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace BASEAPI.Controllers
 {
@@ -57,6 +59,42 @@ namespace BASEAPI.Controllers
             _emailservice.SendEmail(email);
             //response
             return Created("Register successly, check your email to verification !", NewUser);
+        }
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin()
+        {
+            var authenticationProperties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleCallback))
+            };
+
+            return Challenge(authenticationProperties, "Google");
+        }
+        [HttpGet("google-callback")]
+        public async Task<IActionResult> GoogleCallback(string returnUrl = "/")
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync("Google");
+            if (!authenticateResult.Succeeded)
+            {
+                // Handle authentication failure
+                return RedirectToAction("Login", "Account");
+            }
+
+            // If authentication is successful, create the identity and sign in the user
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, authenticateResult.Principal.FindFirst(ClaimTypes.NameIdentifier).Value),
+                new Claim(ClaimTypes.Name, authenticateResult.Principal.FindFirst(ClaimTypes.Name).Value),
+                new Claim(ClaimTypes.Email, authenticateResult.Principal.FindFirst(ClaimTypes.Email).Value),
+            };
+
+            var userIdentity = new ClaimsIdentity(claims, "login");
+            var userPrincipal = new ClaimsPrincipal(userIdentity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, userPrincipal);
+
+            // Redirect user to the original URL
+            return LocalRedirect(returnUrl);
         }
 
         [HttpPost]
